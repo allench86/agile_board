@@ -1,0 +1,53 @@
+<div class="drag">
+  <div class="dragable_new_sticky">
+    <div class="dragable_new_sticky new_sticky_header">
+    </div>
+    <div>
+      <div class="dragable_new_sticky content_container"> New Sticky
+      </div>
+      <div>
+      </div>
+    </div>
+  </div>
+</div>
+<%= javascript_tag do%>
+$(document).ready(function () {
+    //Make element draggable
+    $(".drag").draggable({
+        helper: 'clone',
+        containment: 'frame',
+        stop: function (ev, ui) {
+            var pos = $(ui.helper).offset();
+            objName = "#clonediv"
+            $(objName).css({
+                "left": pos.left,
+                "top": pos.top
+            });
+        }
+    });
+    //Make element droppable
+    $(".drop_able_column").droppable({
+        drop: function (ev, ui) {
+          var column = $(this);
+          var column_id = column.data('column-id');
+          $.ajax({
+            type : "POST",
+            url :  '<%= stickies_path(:format => :json) %>',
+            dataType: 'json',
+            data : {"sticky": { "column_id" : column_id, "details" : "Please write down some details." } },
+            success: function(data) {
+              console.log("success. data:");
+              console.log(data);
+              $.tmpl("templates/empty_sticky_template",
+                { id: column_id })
+                .appendTo(column.find("#sticky_container"));
+            },
+            fail: function(data) {
+              console.log("failed. data:");
+              console.log(data);
+            }
+          });
+        }
+    });
+});
+<% end %>

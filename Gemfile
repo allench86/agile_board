@@ -16,6 +16,7 @@ gem 'sunspot_solr' # optional pre-packaged Solr distribution for use in developm
 
 gem 'jquery-rails'
 gem 'jquery-ui-rails'
+gem 'jquery-tmpl-rails'
 
 group :development do
   gem 'annotate', '2.4.0'

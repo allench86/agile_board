@@ -1,14 +1,16 @@
-<div style="width:230px; height:175px; background-color: #FFE373">
-  <div style="width:230px; height:20px; background-color: #FCCA00">
-  </div>
-  <div>
-    <div style="padding: 5px; height: 95px">
-      <%= sticky.details %>
+<%= link_to edit_sticky_path(sticky), :target => "_blank" do %>
+  <div class="sticky_wrapper">
+    <div class="sticky_wrapper sticky_header">
     </div>
     <div>
-      <% sticky.owners.each do |owner| %>
-        <%= render("member", :user => owner) %>
-      <% end %>
+      <div class="sticky_wrapper content_container">
+        <%= sticky.details %>
+      </div>
+      <div>
+        <% sticky.owners.each do |owner| %>
+          <%= render("member", :user => owner) %>
+        <% end %>
+      </div>
     </div>
   </div>
-</div>
+<% end %>

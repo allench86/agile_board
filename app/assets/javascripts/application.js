@@ -5,4 +5,5 @@
 //= require jquery_ujs
 //= require bootstrap
 //= require jquery.ui.all
+//= require jquery-tmpl
 //= require_tree .
