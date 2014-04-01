@@ -61,7 +61,8 @@ class StickiesController < ApplicationController
     respond_to do |format|
       if @sticky.update_attributes(params[:sticky])
         format.html { redirect_to(@sticky, :notice => 'Sticky was successfully updated.') }
-        format.json  { head :ok }
+        # format.json  { head :ok }
+         format.json { render :json => true }
       else
         format.html { render :action => "edit" }
         format.json  { render :json => @sticky.errors, :status => :unprocessable_entity }

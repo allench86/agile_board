@@ -36,12 +36,35 @@ $(document).ready(function () {
             dataType: 'json',
             data : {"sticky": { "column_id" : column_id, "details" : "Please write down some details." } },
             success: function(data) {
-              console.log("success. data:");
-              console.log(data);
               $.tmpl("templates/empty_sticky_template",
-                { id: column_id })
+                { sticky_id: data.sticky.id, details: data.sticky.details})
                 .appendTo(column.find("#sticky_container"));
+              var new_sticky_wrapper = $("#sticky_" + data.sticky.id)
+              new_sticky_wrapper.find(".sticky_wrapper.content_container").editable();
+              new_sticky_wrapper.find(".ok_button").click(function() {
+                var content_container = $(this).siblings(".sticky_wrapper.content_container")[0];
+                var new_details = content_container.innerText;
+                var sticky_id = $(this).data("sticky-id");
+                var sticky_update_uri = "<%= stickies_path %>/" + sticky_id + ".json";
+                $.ajax({
+                  type : "PUT",
+                  url :  sticky_update_uri,
+                  dataType: 'json',
+                  data : {"sticky": {
+                    "id" : sticky_id,
+                    "details" : new_details } },
+                  success: function(data) {
+                    console.log("edit sticky succeed");
+                    console.log(data);
+                  },
+                  fail: function(data) {
+                    console.log("failed. data:");
+                    console.log(data);
+                  }
+                });
+              });
             },
+
             fail: function(data) {
               console.log("failed. data:");
               console.log(data);
@@ -49,5 +72,6 @@ $(document).ready(function () {
           });
         }
     });
+
 });
 <% end %>
