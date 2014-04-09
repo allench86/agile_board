@@ -11,67 +11,113 @@
   </div>
 </div>
 <%= javascript_tag do%>
-$(document).ready(function () {
-    //Make element draggable
-    $(".drag").draggable({
-        helper: 'clone',
-        containment: 'frame',
-        stop: function (ev, ui) {
-            var pos = $(ui.helper).offset();
-            objName = "#clonediv"
-            $(objName).css({
-                "left": pos.left,
-                "top": pos.top
-            });
-        }
-    });
-    //Make element droppable
-    $(".drop_able_column").droppable({
-        drop: function (ev, ui) {
-          var column = $(this);
-          var column_id = column.data('column-id');
-          $.ajax({
-            type : "POST",
-            url :  '<%= stickies_path(:format => :json) %>',
-            dataType: 'json',
-            data : {"sticky": { "column_id" : column_id, "details" : "Please write down some details." } },
-            success: function(data) {
-              $.tmpl("templates/empty_sticky_template",
-                { sticky_id: data.sticky.id, details: data.sticky.details})
-                .appendTo(column.find("#sticky_container"));
-              var new_sticky_wrapper = $("#sticky_" + data.sticky.id)
-              new_sticky_wrapper.find(".sticky_wrapper.content_container").editable();
-              new_sticky_wrapper.find(".ok_button").click(function() {
-                var content_container = $(this).siblings(".sticky_wrapper.content_container")[0];
-                var new_details = content_container.innerText;
-                var sticky_id = $(this).data("sticky-id");
-                var sticky_update_uri = "<%= stickies_path %>/" + sticky_id + ".json";
-                $.ajax({
-                  type : "PUT",
-                  url :  sticky_update_uri,
-                  dataType: 'json',
-                  data : {"sticky": {
-                    "id" : sticky_id,
-                    "details" : new_details } },
-                  success: function(data) {
-                    console.log("edit sticky succeed");
-                    console.log(data);
-                  },
-                  fail: function(data) {
-                    console.log("failed. data:");
-                    console.log(data);
-                  }
-                });
-              });
-            },
 
-            fail: function(data) {
-              console.log("failed. data:");
-              console.log(data);
-            }
+deleteIconClickAction = function () {
+  if (confirm("Are you sure?")) {
+    var sticky_id = $(this).data("sticky-id");
+    var sticky_uri = "<%= stickies_path %>/" + sticky_id;
+    $.ajax({
+      type : "DELETE",
+      url :  sticky_uri,
+      dataType: 'json',
+      data : {"sticky": { "id" : sticky_id} },
+      success: function(data) {
+        $("#sticky_wrapper_"+sticky_id).remove();
+      },
+      fail: function(data) {
+        console.log("failed. data:");
+        console.log(data);
+      }
+    });
+  }
+};
+
+setupStickyContentEditable = function() {
+  $(".sticky_wrapper.content_container").each(function() {
+      $(this).editable();
+  });
+};
+
+setupStickyDeleteIcon = function() {
+  $(".delete_icon").click(deleteIconClickAction);
+};
+
+//Make element draggable
+setupDraggableNewSticky = function() {
+  $(".drag").draggable({
+      helper: 'clone',
+      containment: 'frame',
+      stop: function (ev, ui) {
+          var pos = $(ui.helper).offset();
+          objName = "#clonediv"
+          $(objName).css({
+              "left": pos.left,
+              "top": pos.top
           });
-        }
-    });
+      }
+  });
+};
 
+//Make element droppable
+setupDroppableColumn = function () {
+  $(".drop_able_column").droppable({
+      drop: function (ev, ui) {
+        var column = $(this);
+        var column_id = column.data('column-id');
+        $.ajax({
+          type : "POST",
+          url :  '<%= stickies_path(:format => :json) %>',
+          dataType: 'json',
+          data : {"sticky": { "column_id" : column_id, "details" : "Please write down some details." } },
+          success: function(data) {
+            $.tmpl("templates/empty_sticky_template",
+              { sticky_id: data.sticky.id, details: data.sticky.details})
+              .appendTo(column.find("#sticky_container"));
+            var new_sticky_wrapper = $("#sticky_" + data.sticky.id)
+            new_sticky_wrapper.find(".sticky_wrapper.content_container").editable();
+          },
+
+          fail: function(data) {
+            console.log("failed. data:");
+            console.log(data);
+          }
+        });
+      }
+  });
+};
+
+setup = function () {
+  setupDraggableNewSticky();
+  setupStickyDeleteIcon();
+  setupStickyContentEditable();
+};
+
+$(document).ready(function() {
+  setup();
+  $(".drop_able_column").droppable({
+      drop: function (ev, ui) {
+        var column = $(this);
+        var column_id = column.data('column-id');
+        $.ajax({
+          type : "POST",
+          url :  '<%= stickies_path(:format => :json) %>',
+          dataType: 'json',
+          data : {"sticky": { "column_id" : column_id, "details" : "Please write down some details." } },
+          success: function(data) {
+            $.tmpl("templates/empty_sticky_template",
+              { sticky_id: data.sticky.id, details: data.sticky.details})
+              .appendTo(column.find("#sticky_container"));
+            var new_sticky_wrapper = $("#sticky_wrapper_" + data.sticky.id)
+            new_sticky_wrapper.find(".sticky_wrapper.content_container").editable();
+            new_sticky_wrapper.find(".delete_icon").click(deleteIconClickAction);
+          },
+
+          fail: function(data) {
+            console.log("failed. data:");
+            console.log(data);
+          }
+        });
+      }
+  });
 });
 <% end %>

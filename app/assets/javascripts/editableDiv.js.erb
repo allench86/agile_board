@@ -1,0 +1,53 @@
+(function($) {
+    $.fn.editable = function() {
+        var textBlock = $(this);
+        // Create a new input to allow editing text on double click
+        var textBox = $('<input/>');
+        textBox.hide().insertAfter(textBlock).val(textBlock[0].innerText);
+
+        // Hiding the div and showing a input to allow editing the value.
+        textBlock.dblclick(function() {
+            toggleVisiblity(textBlock, textBox, true);
+        });
+        // Hiding the input and showing the original div
+        textBox.blur(function() {
+            toggleVisiblity(textBlock, textBox, false);
+        });
+
+        toggleVisiblity = function(textBlock, textBox, editMode) {
+            if (editMode == true) {
+                textBlock.hide();
+                textBox.show().focus();
+                // workaround, to move the cursor at the end in input box.
+                textBox[0].value = textBox[0].value;
+            }
+            else {
+                var new_details = textBox.val();
+                var sticky_id = textBlock.data("stickyId");
+                var sticky_update_uri = "<%= Rails.application.routes.url_helpers.stickies_path %>/" + sticky_id + ".json";
+
+                textBlock.show();
+                textBox.hide();
+                textBlock.html(new_details);
+
+                $.ajax({
+                  type : "PUT",
+                  url :  sticky_update_uri,
+                  dataType: 'json',
+                  data : {"sticky": {
+                    "id" : sticky_id,
+                    "details" : new_details } },
+                  success: function(data) {
+                    console.log("edit sticky succeed");
+                    console.log(data);
+                  },
+                  fail: function(data) {
+                    console.log("failed. data:");
+                    console.log(data);
+                  }
+                });
+            }
+        };
+    };
+
+})(jQuery);
