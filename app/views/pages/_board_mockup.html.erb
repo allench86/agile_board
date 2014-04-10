@@ -25,3 +25,132 @@
     <% end %>
   </div>
 </div>
+<%= javascript_tag do%>
+
+deleteIconClickAction = function () {
+  if (confirm("Are you sure?")) {
+    var sticky_id = $(this).data("sticky-id");
+    var sticky_uri = "<%= stickies_path %>/" + sticky_id;
+    $.ajax({
+      type : "DELETE",
+      url :  sticky_uri,
+      dataType: 'json',
+      data : {"sticky": { "id" : sticky_id} },
+      success: function(data) {
+        $("#sticky_wrapper_"+sticky_id).remove();
+      },
+      fail: function(data) {
+        console.log("failed. data:");
+        console.log(data);
+      }
+    });
+  }
+};
+
+setupStickyContentEditable = function() {
+  $(".sticky_wrapper").find(".content_container").each(function() {
+      $(this).editable();
+  });
+};
+
+setupStickyDeleteIcon = function() {
+  $(".sticky_wrapper").find(".delete_icon").click(deleteIconClickAction);
+};
+
+getDraggableObject = function() {
+  return {
+      helper: 'clone',
+      containment: 'frame',
+      stop: function (ev, ui) {
+          var pos = $(ui.helper).offset();
+          var objName = "#clonediv"
+          $(objName).css({
+              "left": pos.left,
+              "top": pos.top
+          });
+      }
+  };
+};
+
+//Make new sticky draggable
+setupDraggableNewSticky = function() {
+  $(".new_sticky_wrapper").draggable(getDraggableObject());
+};
+
+//Make existing sticky draggable
+setupDraggableExistingSticky = function() {
+  $(".sticky_wrapper").draggable(getDraggableObject());
+};
+
+//Make element droppable
+setupDroppableColumn = function () {
+  $(".drop_able_column").droppable({
+      drop: function (ev, ui) {
+        var column_node = $(this);
+        var column_id = column_node.data('column-id');
+        if (ui.draggable.hasClass("new_sticky_wrapper")) {
+          createNewSticky(column_id, column_node);
+        }
+        else if (ui.draggable.hasClass("sticky_wrapper")) {
+          moveStickyToNewColumn(column_id, column_node, ui);
+        }
+      }
+  });
+};
+
+moveStickyToNewColumn = function(column_id, column_node, ui) {
+  var sticky_id = $(ui.draggable.context).data("sticky-id");
+  var sticky_update_uri = "<%= stickies_path %>/" + sticky_id + ".json";
+
+  $.ajax({
+    type : "PUT",
+    url :  sticky_update_uri,
+    dataType: "json",
+    data : {"sticky": { "column_id" : column_id } },
+    success: function(data) {
+      console.log("updated sticky.");
+      $(ui.draggable.context).appendTo(column_node.find("#sticky_container"));
+    },
+
+    fail: function(data) {
+      console.log("failed. data:");
+      console.log(data);
+    }
+  });
+};
+
+createNewSticky = function(column_id, column_node) {
+  $.ajax({
+    type : "POST",
+    url :  "<%= stickies_path(:format => :json) %>",
+    dataType: "json",
+    data : {"sticky": { "column_id" : column_id, "details" : "Please write down some details." } },
+    success: function(data) {
+      $.tmpl("templates/empty_sticky_template",
+        { sticky_id: data.sticky.id, details: data.sticky.details})
+        .appendTo(column_node.find("#sticky_container"));
+      var new_sticky_wrapper = $("#sticky_wrapper_" + data.sticky.id)
+      new_sticky_wrapper.find(".content_container").editable();
+      new_sticky_wrapper.find(".delete_icon").click(deleteIconClickAction);
+      new_sticky_wrapper.draggable(getDraggableObject());
+    },
+
+    fail: function(data) {
+      console.log("failed. data:");
+      console.log(data);
+    }
+  });
+};
+
+setup = function () {
+  setupDraggableNewSticky();
+  setupDraggableExistingSticky();
+  setupDroppableColumn();
+  setupStickyDeleteIcon();
+  setupStickyContentEditable();
+};
+
+$(document).ready(function() {
+  setup();
+});
+<% end %>

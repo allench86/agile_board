@@ -1,12 +1,12 @@
 <div class="sticky_wrapper" id="sticky_wrapper_<%= sticky.id %>" data-sticky-id="<%= sticky.id %>">
-  <div class="sticky_wrapper sticky_header">
+  <div class="header">
     <div class="delete_icon" data-sticky-id="<%= sticky.id %>">
       <%= image_tag "icons/delete.png", {width: 15} %>
     </div>
   </div>
 
     <div>
-      <div class="sticky_wrapper content_container" data-sticky-id="<%= sticky.id %>">
+      <div class="content_container" data-sticky-id="<%= sticky.id %>">
         <%= sticky.details %>
       </div>
       <div>
